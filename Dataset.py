@@ -42,7 +42,7 @@ class satelliteimage_dataset(torch.utils.data.Dataset):
         return sample
 
 #myloader = satelliteimage_dataset()
-img = satelliteimage_dataset(image_path="/Users/nikeeshrestha/Documents/Satellietimage/SatelliteImage/imagedata", label_path="/Users/nikeeshrestha/Documents/Satellietimage/SatelliteImage/labelfolder/label.csv")
+img = satelliteimage_dataset(image_path="imagedata", label_path="labelfolder/label.csv")
 print(img.__getitem__(0)['data'].shape)
 print(img.__getitem__(0)['label'])
 # print(img['label'])
