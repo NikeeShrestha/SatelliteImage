@@ -1,5 +1,6 @@
 import torch
 import torch. nn as nn
+import sys
 
 
 import torchvision
@@ -19,37 +20,39 @@ class satelliteimage_dataset(torch.utils.data.Dataset):
        self.imagepath=image_path
        assert os.path.exists(self.imagepath) ##if its true nothing happens
        assert os.path.exists(label_path) ##same
+
        self.all_label= pd.read_csv(label_path,index_col=0)
        self.all_filenames= glob.glob(os.path.join(image_path, '*.PNG'))
+    #    self.all_filenames=np.array(self.all_filenames)
     
     def __len__(self):
         return len(self.all_filenames)
         return len(self.all_label)
     
     def __getitem__(self, idx):
-        selected_filename= self.all_filenames[idx].split("/")[-1]
-        print(idx)
-        print(selected_filename)
+        selected_filename= self.all_filenames.split("/")[-1]
         imagepil= PIL.Image.open(os.path.join(self.imagepath, selected_filename))
 
         transform = transforms.Compose([
+            transforms.Resize((27, 12)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # Adjust mean and std as needed
         ])
-
         image=transform(imagepil) ## model learns better ## we want all the data to be on same scale
         label =torch.Tensor(self.all_label.loc[selected_filename,:].values)
 
-        sample={'data':image,
-                'label':label,
-                'image_idx': idx
-        }
-
-        return sample
+        return image, label
 
 #myloader = satelliteimage_dataset()
-img = satelliteimage_dataset(image_path="/Users/nikeeshrestha/Documents/Satellietimage/SatelliteImage/imagedata", label_path="/Users/nikeeshrestha/Documents/Satellietimage/SatelliteImage/labelfolder/label.csv")
-print(img.__getitem__(0)['data'].shape)
+dataset = satelliteimage_dataset(image_path="/Users/nikeeshrestha/Documents/Satellietimage/SatelliteImage/imagedata", label_path="/Users/nikeeshrestha/Documents/Satellietimage/SatelliteImage/labelfolder/label.csv")
+train_set, test_set= torch.utils.data.random_split(dataset, [8,2])
+train_loader=torch.utils.data.DataLoader(dataset=train_set, batch_size=1, shuffle=True)
+test_loader=torch.utils.data.DataLoader(dataset=test_set, batch_size=1, shuffle=True)
+
+print(train_loader)
+print(test_loader)
+# sys.exit()
+#print(img)
 # print(img.__getitem__(0)['label'])
 
 
@@ -76,7 +79,7 @@ class architecture(torch.nn.Module):
         conv2D_layer1 = self.conv1(x)
         # # print(conv2D_layer1.shape)
         flatten = conv2D_layer1.view(-1)
-        # print(flatten.shape)
+        print(flatten.shape)
         encodelinear1=self.linear1(flatten)
         print(encodelinear1.shape)
 
@@ -101,7 +104,20 @@ class architecture(torch.nn.Module):
         return encodelinear4
     # self.conv2 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=(5,5))
         
-model = architecture(x=img.__getitem__(0)['data'],input_shape=4000, output_shape=10)
-LV=model(x=img.__getitem__(0)['data'])
-print(LV)
+# model = architecture(x=img,input_shape=4000, output_shape=10)
+# LV=model(x=img)
+# print(LV)
 # model.summary()
+
+model=architecture(input_shape=4000, output_shape=10)
+optimizer=torch.optim.SGD(model.parameters(), lr=0.001)
+num_epochs=3000
+for epoch in range(num_epochs):
+    losses=[]
+
+    for batch_idx, (data, label) in enumerate(train_loader):
+        LV=model(data)
+        
+
+
+
