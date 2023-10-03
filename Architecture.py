@@ -47,7 +47,7 @@ class satelliteimage_dataset(torch.utils.data.Dataset):
         return image, label
 
 # myloader = satelliteimage_dataset()
-dataset = satelliteimage_dataset(image_path="/Users/nikeeshrestha/Documents/Satellietimage/SatelliteImage/imagedata", label_path="/Users/nikeeshrestha/Documents/Satellietimage/SatelliteImage/labelfolder/label.csv")
+dataset = satelliteimage_dataset(image_path="imagedata", label_path="labelfolder/label.csv")
 train_set, test_set= torch.utils.data.random_split(dataset, [8,2])
 train_loader=torch.utils.data.DataLoader(dataset=train_set, batch_size=1, shuffle=True)
 test_loader=torch.utils.data.DataLoader(dataset=test_set, batch_size=1, shuffle=True)

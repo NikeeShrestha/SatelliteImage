@@ -1,5 +1,5 @@
 import Dataset as dat
-import ArchitectureBasic as arch
+import architectureBasic as arch
 import numpy as np
 import torch
 import torch.nn as nn
@@ -15,6 +15,7 @@ model = arch.architectureBasic()
 optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
 numEpochs = 10
 totalLoss = []
+lossFunction = nn.MSELoss()
 
 for epoch in range(numEpochs):
     
@@ -23,15 +24,17 @@ for epoch in range(numEpochs):
     for batch_idx, (data, label) in enumerate(trainLoader):
         
         currModel = model(data)
+        print(currModel)
         optimizer.zero_grad()
-        loss = nn.MSELoss(currModel, label)
+        loss = lossFunction(currModel, label)
+        # print(loss)
         epochLoss.append(loss.item())
         loss.backward()
         optimizer.step()
     
     epochMeanLoss = np.mean(epochLoss)
     totalLoss.append(epochMeanLoss)
-    print(epochMeanLoss)
+#     print(epochMeanLoss)
     
         
         
