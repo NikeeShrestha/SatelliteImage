@@ -33,7 +33,7 @@ class architectureBasic(nn.Module):
         linear4 = F.relu(self.linear4(linear3))
         linear5 = F.relu(self.linear5(linear4))
         linear6 = F.relu(self.linear6(linear5))
-        linear7 = F.tanhshrink(self.linear7(linear6))
+        linear7 = self.linear7(linear6)
         
         return linear7
         
