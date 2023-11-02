@@ -30,19 +30,27 @@ class satelliteimage_dataset(torch.utils.data.Dataset):
         # imagepil= PIL.Image.open(os.path.join(self.imagepath, selected_filename))
         with rasterio.open(os.path.join(self.imagepath, selected_filename), 'r') as src:
             image=src.read()
+            # print(image.shape)
+            image = image.astype(np.float32)
+            # print(image.shape)
+            image = image.transpose((1,2,0))
+            # image = (image - image.min()) / (image.max() - image.min())
 
         transform = transforms.Compose([
-            transforms.Resize((27, 12)),
+            # transforms.Resize((27, 12)),
             transforms.ToTensor(),
             #transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # Adjust mean and std as needed
         ])
         image=transform(image) ## model learns better ## we want all the data to be on same scale
+        # print(image.shape)
         label =torch.Tensor(self.all_label.loc[selected_filename,:].values)
+        print(label)
 
         return image, label
 # print(img['label'])
 # print(img['idx'])
 
       
+# satelliteimage_dataset(image_path = 'Data/', label_path = 'labelfolder/label.csv')
 
 
