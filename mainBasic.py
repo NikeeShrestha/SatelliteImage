@@ -4,7 +4,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import rasterio
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+import pandas as pd
 
 dataset = dat.satelliteimage_dataset(image_path = '/home/schnablelab/Documents/SixBndImages/Crawfordsville/Hybrids/CroppedTP2', label_path = 'Data/HipsData_TP2_CrawFordsville_yield.csv')
 trainSize = int(dataset.__len__() * 0.8)
@@ -16,7 +18,7 @@ testLoader=torch.utils.data.DataLoader(dataset=testData, batch_size=1, shuffle=T
 
 model = arch.architectureBasic()
 optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
-numEpochs = 10
+numEpochs = 3000
 totalLoss = []
 totalvalloss = []
 lossFunction = nn.MSELoss()
@@ -53,17 +55,46 @@ for epoch in range(numEpochs):
             currModel = model(data)
             loss = lossFunction(currModel, label)
             valLoss.append(loss.item())
+
         valMeanLoss = np.mean(valLoss)
-        totalvalloss.append(valMeanLoss)
+        totalvalloss.append(valMeanLoss) 
         # print(valMeanLoss)
 
-plt.plot(range(numEpochs), totalLoss)
-plt.plot(range(numEpochs), totalvalloss)
-plt.legend(['Train', 'Validation'])
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.show()
-    
+        Finalprediction=[]
+
+        if epoch == numEpochs-1:
+            for batch_idx, (data, label) in enumerate(testLoader):
+                finalModel=model(data).item()
+                labelfinal=label.item()
+                Finalprediction.append(
+                {'prediction': finalModel,
+                    'label': labelfinal
+                }
+            )
+        # print(valMeanLoss)
+
+Finalprediction=pd.DataFrame(Finalprediction)
+Finalprediction.to_csv('Finalprediction.csv', index=False)
+
+fig=plt.figure()
+ax=fig.add_subplot(111)
+ax.plot(range(numEpochs), totalLoss)
+ax.plot(range(numEpochs), totalvalloss)
+ax.set_xlabel('Epochs')
+ax.set_ylabel('Loss')
+ax.legend(['Train', 'Validation'])
+plt.savefig("Validation.png")
+
+fig=plt.figure()
+ax=fig.add_subplot(111)
+ax.scatter(Finalprediction['label'], Finalprediction['prediction'])
+ax.set_xlabel('RealValue')
+ax.set_ylabel('PredictedValue')
+r,pval=pearsonr(Finalprediction['label'], Finalprediction['prediction'])
+ax.annotate('r = {:.2f}'.format(r), (min(Finalprediction['label']), max(Finalprediction['prediction'])), size=12)
+plt.savefig("Validation_values.png")
+
+
         
         
 

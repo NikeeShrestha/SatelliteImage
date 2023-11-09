@@ -37,9 +37,9 @@ class architectureBasic(nn.Module):
         # print(conv2.shape)
         flatten=conv2.view(-1)
         # print(flatten.shape)
-        linear1=self.dropout(self.activation(self.fc1(flatten)))
+        linear1=(self.activation(self.fc1(flatten)))
         linear2=self.dropout(self.activation(self.fc2(linear1)))
-        linear3=self.dropout(self.activation(self.fc3(linear2)))
+        linear3=(self.activation(self.fc3(linear2)))
         linear4=self.fc4(linear3)
         # print(linear4.shape)
 
