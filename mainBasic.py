@@ -17,8 +17,8 @@ testLoader=torch.utils.data.DataLoader(dataset=testData, batch_size=1, shuffle=T
 
 
 model = arch.architectureBasic()
-optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
-numEpochs = 3000
+optimizer = torch.optim.Adam(model.parameters(), lr = 0.0001)
+numEpochs = 4000
 totalLoss = []
 totalvalloss = []
 lossFunction = nn.MSELoss()
@@ -27,7 +27,7 @@ for epoch in range(numEpochs):
     
     epochLoss = []
 
-    for batch_idx, (data, label) in enumerate(trainLoader):
+    for batch_idx, (data, label,f) in enumerate(trainLoader):
        
         
         currModel = model(data)
@@ -51,7 +51,7 @@ for epoch in range(numEpochs):
 
     with torch.no_grad():
         valLoss = []
-        for batch_idx, (data, label) in enumerate(testLoader):
+        for batch_idx, (data, label, f) in enumerate(testLoader):
             currModel = model(data)
             loss = lossFunction(currModel, label)
             valLoss.append(loss.item())
@@ -63,12 +63,14 @@ for epoch in range(numEpochs):
         Finalprediction=[]
 
         if epoch == numEpochs-1:
-            for batch_idx, (data, label) in enumerate(testLoader):
+            for batch_idx, (data, label, f) in enumerate(testLoader):
+                file=f
                 finalModel=model(data).item()
                 labelfinal=label.item()
                 Finalprediction.append(
                 {'prediction': finalModel,
-                    'label': labelfinal
+                    'label': labelfinal,
+                    'file': file,
                 }
             )
         # print(valMeanLoss)

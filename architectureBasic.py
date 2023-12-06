@@ -40,7 +40,7 @@ class architectureBasic(nn.Module):
         linear1=(self.activation(self.fc1(flatten)))
         linear2=self.dropout(self.activation(self.fc2(linear1)))
         linear3=(self.activation(self.fc3(linear2)))
-        linear4=self.fc4(linear3)
+        linear4=self.activation(self.fc4(linear3))
         # print(linear4.shape)
 
         return linear4

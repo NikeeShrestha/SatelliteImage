@@ -32,7 +32,7 @@ class satelliteimage_dataset(torch.utils.data.Dataset):
         if selected_filename not in self.all_label.index:
             print(selected_filename, "no data for this file")
             return self.__getitem__((idx + 1) % len(self))
-
+        
         with rasterio.open(os.path.join(self.imagepath, selected_filename), 'r') as src:
             image=src.read()
             # print(image.shape)
@@ -44,14 +44,17 @@ class satelliteimage_dataset(torch.utils.data.Dataset):
         transform = transforms.Compose([
             # transforms.Resize((27, 12)),
             transforms.ToTensor(),
+            # transforms.RandomHorizontalFlip(p=0.5),
+            # transforms.RandomRotation(degrees=45),
             #transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # Adjust mean and std as needed
         ])
-        image=transform(image) ## model learns better ## we want all the data to be on same scale
+        # image=transform(image) ## model learns better ## we want all the data to be on same scale
         # print(image.shape)
         label =torch.Tensor(self.all_label.loc[selected_filename,:].values)
+        filename=selected_filename
         # print(label.shape)
 
-        return image, label
+        return image, label, filename
 # print(img['label'])
 # print(img['idx'])
 
