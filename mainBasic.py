@@ -7,8 +7,9 @@ import rasterio
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 import pandas as pd
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-dataset = dat.satelliteimage_dataset(image_path = '/home/schnablelab/Documents/SixBndImages/Crawfordsville/Hybrids/CroppedTP2', label_path = 'Data/HipsData_TP2_CrawFordsville_yield.csv')
+dataset = dat.satelliteimage_dataset_getitemfixed(image_path = '/home/schnablelab/Documents/ImageDataset/SixBndImages/Crawfordsville/Hybrids/CroppedTP3', label_path = 'Data/HipsData_TP2_CrawFordsville_yield.csv')
 trainSize = int(dataset.__len__() * 0.8)
 testSize = dataset.__len__() - trainSize
 trainData, testData = torch.utils.data.random_split(dataset, [trainSize, testSize])
@@ -16,12 +17,16 @@ trainLoader=torch.utils.data.DataLoader(dataset=trainData, batch_size=1, shuffle
 testLoader=torch.utils.data.DataLoader(dataset=testData, batch_size=1, shuffle=True)
 
 
-model = arch.architectureBasic()
+model = arch.architectureresnet()
 optimizer = torch.optim.Adam(model.parameters(), lr = 0.0001)
-numEpochs = 4000
+
+# Initialize the scheduler
+scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, verbose=True)
+
+numEpochs = 5000
 totalLoss = []
 totalvalloss = []
-lossFunction = nn.MSELoss()
+lossFunction=nn.MSELoss()
 
 for epoch in range(numEpochs):
     
@@ -31,8 +36,9 @@ for epoch in range(numEpochs):
        
         
         currModel = model(data)
+        # print(currModel)
         # print(currModel.shape)
-        print(currModel)
+        # print(currModel)
         # print(label.shape)
         # print(label)
         loss = lossFunction(currModel, label)
@@ -60,7 +66,10 @@ for epoch in range(numEpochs):
         totalvalloss.append(valMeanLoss) 
         # print(valMeanLoss)
 
+        # scheduler.step(valMeanLoss)
+
         Finalprediction=[]
+    
 
         if epoch == numEpochs-1:
             for batch_idx, (data, label, f) in enumerate(testLoader):
@@ -73,6 +82,7 @@ for epoch in range(numEpochs):
                     'file': file,
                 }
             )
+    print('epoch:', epoch, "training loss:",epochMeanLoss, "validation loss:", valMeanLoss)
         # print(valMeanLoss)
 
 Finalprediction=pd.DataFrame(Finalprediction)
@@ -96,7 +106,10 @@ r,pval=pearsonr(Finalprediction['label'], Finalprediction['prediction'])
 ax.annotate('r = {:.2f}'.format(r), (min(Finalprediction['label']), max(Finalprediction['prediction'])), size=12)
 plt.savefig("Validation_values.png")
 
-
+tldf=pd.DataFrame(totalLoss)
+tvldf=pd.DataFrame(totalvalloss)
+tldf.to_csv('totaloss.csv',index=False)
+tvldf.to_csv('totalvalloss.csv',index=False)
         
         
 

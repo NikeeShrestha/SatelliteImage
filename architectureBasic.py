@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import glob
 import PIL
+import torchvision.models as models
 import Dataset as dl
 
 class architectureBasic(nn.Module):
@@ -44,4 +45,33 @@ class architectureBasic(nn.Module):
         # print(linear4.shape)
 
         return linear4
-        
+    
+
+class architectureresnet(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.resnet=models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
+        self.resnet.conv1=nn.Conv2d(in_channels = 6, out_channels = 64,kernel_size=(3,3), padding=(3,3), bias=False)
+
+        ##freezing the parametrs of the model
+        # for param in self.resnet.parameters():
+        #     param.requires_grad=False
+
+        ##Replacing the final fully connected layer  and adjusting the in features to match the last layer of Resnet
+        num_features=self.resnet.fc.in_features
+
+        self.resnet.fc=nn.Sequential(
+            nn.Linear(num_features, 128),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(128,64),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(64,32),
+            nn.ReLU(),
+            nn.Linear(32,1)
+        )
+        print(self.resnet.fc.requires_grad_)
+    def forward(self, x):
+        return self.resnet(x)
